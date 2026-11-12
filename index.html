@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="da">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FP9 uden hjælpemidler</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Caveat:wght@600;700&display=swap">
+<style>
+/* Layout: a single exam sheet on squared paper; training adds a sticky method card beside it (stacks on phones). */
+:root{
+  --bg:#eef1f6; --paper:#ffffff; --grid:rgba(35,72,201,.075); --ink:#16213a; --muted:#5b6680; --line:#d6dce8;
+  --accent:#2348c9; --accent-ink:#ffffff; --accent-soft:#e3e9fb;
+  --red:#c62f2f; --red-soft:#fbe6e4; --green:#1d7a4c; --green-soft:#e0f2e8;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-hand:"Caveat", "Segoe Print", "Comic Sans MS", cursive;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e131d; --paper:#161d2b; --grid:rgba(138,164,255,.07); --ink:#e6ebf5; --muted:#9aa5bd; --line:#2a3347;
+  --accent:#8aa4ff; --accent-ink:#0e131d; --accent-soft:#1e2846;
+  --red:#ff7b6f; --red-soft:#3a1e20; --green:#5fd39a; --green-soft:#14301f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e131d; --paper:#161d2b; --grid:rgba(138,164,255,.07); --ink:#e6ebf5; --muted:#9aa5bd; --line:#2a3347;
+  --accent:#8aa4ff; --accent-ink:#0e131d; --accent-soft:#1e2846;
+  --red:#ff7b6f; --red-soft:#3a1e20; --green:#5fd39a; --green-soft:#14301f; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.35rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+.eyebrow{font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:8px 16px}
+header.top .sub{color:var(--muted);font-size:.95rem}
+
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:clamp(18px,4vw,32px);display:grid;gap:18px;min-width:0;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px;background-position:-1px -1px}
+.plain{background-image:none}
+
+.btn{font:inherit;font-weight:700;border-radius:8px;padding:.7em 1.15em;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;line-height:1.2}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ghost:hover{background:var(--accent-soft);filter:none}
+.btn.quiet{background:transparent;border-color:var(--line);color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:default;filter:none}
+.btn:focus-visible,input:focus-visible,.dot:focus-visible,.chip:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.row.end{justify-content:flex-end}
+.spacer{flex:1}
+
+/* progress */
+.bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:30px;height:30px;border-radius:6px;border:1.5px solid var(--line);background:var(--paper);color:var(--muted);font:inherit;font-size:.8rem;font-variant-numeric:tabular-nums;cursor:pointer;padding:0}
+.dot.filled{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.dot.now{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+/* question */
+.qhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;align-items:baseline}
+.qnum{font-family:var(--f-display);font-weight:800;font-size:1.05rem}
+.topic{font-size:.8rem;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.qtext{font-size:clamp(1.12rem,2.6vw,1.3rem);line-height:1.6;font-variant-numeric:tabular-nums}
+.qtext b{font-weight:700}
+.hint{font-size:.9rem;color:var(--muted)}
+.fig{color:var(--ink);max-width:260px}
+.fig svg{width:100%;height:auto;display:block}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.88em;line-height:1.15;margin:0 .12em}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .25em}
+.frac>span:last-child{padding:0 .25em}
+sup{font-size:.7em;line-height:0}
+
+.answers{display:flex;flex-wrap:wrap;gap:12px}
+.ans{display:flex;align-items:center;gap:8px;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:4px 12px;min-width:0}
+.ans:focus-within{border-color:var(--accent)}
+.ans .lbl{font-weight:700;color:var(--muted);font-size:.9rem;white-space:nowrap}
+.ans input{font:inherit;font-size:1.15rem;border:0;background:transparent;color:var(--ink);width:9rem;max-width:100%;padding:6px 0;font-variant-numeric:tabular-nums;outline:none}
+.ans .unit{color:var(--muted);white-space:nowrap}
+.ans.ok{border-color:var(--green);background:var(--green-soft)}
+.ans.bad{border-color:var(--red);background:var(--red-soft)}
+
+.notice{border-radius:8px;padding:12px 14px;display:grid;gap:8px}
+.notice.warn{background:var(--red-soft);color:var(--ink);border:1px solid var(--red)}
+.feedback{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mark{font-family:var(--f-hand);font-size:2.2rem;line-height:1;font-weight:700}
+.mark.ok{color:var(--green)}
+.mark.bad{color:var(--red)}
+
+/* method / info box */
+.train{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.train{grid-template-columns:1fr}}
+.info{background:var(--accent-soft);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:12px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);min-width:0}
+@media (max-width:760px){.info{position:static}}
+.info ol{margin:0;padding-left:1.35em;display:grid;gap:8px}
+.info li::marker{font-family:var(--f-display);font-weight:800;color:var(--accent)}
+.info .tip{font-size:.92rem;border-top:1px dashed var(--line);padding-top:10px}
+.ill{margin:0;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 10px 8px;color:var(--ink);display:grid;gap:4px}
+.ill svg{width:100%;height:auto;display:block;overflow:visible}
+.ill figcaption{font-size:.8rem;color:var(--muted);text-align:center}
+.ill text{font-family:var(--f-body);font-size:14px;fill:currentColor}
+.ill .xs{font-size:11px}.ill .sm{font-size:12.5px}.ill .lg{font-size:18px}.ill .b{font-weight:700}
+.ill .mu{fill:var(--muted)}.ill .ac{fill:var(--accent)}.ill .rd{fill:var(--red)}.ill .gr{fill:var(--green)}.ill .ai{fill:var(--accent-ink)}
+.ill .ln{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ill .thin{stroke-width:1.5}.ill .la{stroke:var(--accent);stroke-width:2.5}.ill .lr{stroke:var(--red);stroke-width:2.5}
+.ill .lnm{fill:none;stroke:var(--muted);stroke-width:1.2}.ill .grid{fill:none;stroke:var(--line);stroke-width:1}.ill .dash{stroke-dasharray:5 4}
+.ill .fe{fill:var(--paper);stroke:var(--muted);stroke-width:1.2}.ill .fa{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.2}
+.ill .fA{fill:var(--accent);stroke:var(--accent);stroke-width:1.2}.ill .fr{fill:var(--red-soft);stroke:var(--red);stroke-width:1.2}.ill .fg{fill:var(--green-soft);stroke:var(--green);stroke-width:1.2}
+.ill .dA{fill:var(--accent)}.ill .dR{fill:var(--red)}.ill .dG{fill:var(--green)}
+.steps{margin:0;padding-left:1.35em;display:grid;gap:6px;font-variant-numeric:tabular-nums}
+.solution{border-left:3px solid var(--red);padding:4px 0 4px 14px;display:grid;gap:8px}
+.solution h3{color:var(--red);font-family:var(--f-hand);font-size:1.6rem;font-weight:700}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.82rem;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);border-radius:99px;padding:4px 10px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip .pips{letter-spacing:1px;color:var(--muted)}
+.chip.now{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.chip.done{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+
+/* results */
+.score{display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px}
+.score .big{font-family:var(--f-hand);color:var(--red);font-size:clamp(3.6rem,10vw,5rem);line-height:.9;font-weight:700;transform:rotate(-4deg);font-variant-numeric:tabular-nums}
+.topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.tstat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper);display:grid;gap:6px}
+.tstat b{font-variant-numeric:tabular-nums}
+.list{display:grid;gap:0;border-top:1px solid var(--line)}
+.list details{border-bottom:1px solid var(--line)}
+.list summary{display:grid;grid-template-columns:2.2rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 4px;cursor:pointer;list-style:none}
+.list summary::-webkit-details-marker{display:none}
+.list .n{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}
+.list .t{min-width:0}
+.list .t small{display:block;color:var(--muted);font-size:.85rem}
+.list .m{font-family:var(--f-hand);font-size:1.7rem;line-height:1;width:1.6rem;text-align:center}
+.list .m.ok{color:var(--green)} .list .m.bad{color:var(--red)}
+.list .body{padding:4px 4px 16px 2.8rem;display:grid;gap:10px;min-width:0}
+.cmp{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:.95rem}
+.cmp span b{font-variant-numeric:tabular-nums}
+
+.hist{gap:14px}
+.hhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 20px}
+.hsum{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.92rem}
+.hsum b{color:var(--ink);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1.5px solid var(--line)}
+td{padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+tbody tr:first-child td{font-weight:700}
+.num{text-align:right}
+td .pbar{display:inline-block;vertical-align:middle;width:min(160px,22vw);height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-right:8px}
+td .pbar i{display:block;height:100%;background:var(--accent)}
+.grade{display:inline-block;min-width:2.3em;text-align:center;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--green-soft);color:var(--green);font-variant-numeric:tabular-nums}
+.grade.fail{background:var(--red-soft);color:var(--red)}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.group{border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--paper);display:grid;gap:6px}
+.group ul{margin:0;padding-left:1.1em;color:var(--muted);font-size:.92rem}
+.rules{margin:0;padding-left:1.2em;display:grid;gap:4px}
+code{font-family:ui-monospace,Consolas,monospace;background:var(--accent-soft);padding:1px 5px;border-radius:4px;font-size:.92em}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+// ---------- helpers ----------
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const lcm=(a,b)=>a*b/gcd(a,b);
+const r9=x=>Math.round(x*1e9)/1e9;
+function fmt(x){x=r9(x);let s=Math.abs(x).toString();let [i,d]=s.split('.');
+  if(i.length>4) i=i.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return (x<0?'−':'')+i+(d?','+d:'')}
+const par=x=>x<0?'('+fmt(x)+')':fmt(x);
+const F=(a,b)=>`<span class="frac"><span>${fmt(a)}</span><span>${fmt(b)}</span></span>`;
+function FR(n,d){if(d<0){n=-n;d=-d}const g=gcd(n,d);n/=g;d/=g;if(d===1)return fmt(n);return (n<0?'−':'')+F(Math.abs(n),d)}
+const cx=a=>a===1?'x':a===-1?'−x':fmt(a)+'x';
+const sg=b=>b===0?'':(b<0?' − '+fmt(-b):' + '+fmt(b));
+const sgx=a=>a<0?' − '+cx(-a):' + '+cx(a);
+const P=(a,n)=>`${fmt(a)}<sup>${n}</sup>`;
+const rep=(a,n)=>Array(n).fill(fmt(a)).join(' · ');
+
+function rightTri(bottom,left,hyp){return `<div class="fig"><svg viewBox="0 0 240 150" role="img" aria-label="Retvinklet trekant">
+<path d="M40 128 L200 128 L40 22 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+<path d="M40 114 H54 V128" fill="none" stroke="currentColor" stroke-width="1.5"/>
+<g fill="currentColor" font-size="14" font-family="Atkinson Hyperlegible, sans-serif">
+<text x="120" y="146" text-anchor="middle">${bottom}</text>
+<text x="32" y="80" text-anchor="end">${left}</text>
+<text x="130" y="68">${hyp}</text></g></svg></div>`}
+function areaTri(g,h){return `<div class="fig"><svg viewBox="0 0 240 150" role="img" aria-label="Trekant med grundlinje og højde">
+<path d="M20 128 L210 128 L150 24 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+<path d="M150 24 V128" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+<path d="M138 128 V116 H150" fill="none" stroke="currentColor" stroke-width="1.5"/>
+<g fill="currentColor" font-size="14" font-family="Atkinson Hyperlegible, sans-serif">
+<text x="115" y="146" text-anchor="middle">g = ${g} cm</text>
+<text x="157" y="84">h = ${h} cm</text></g></svg></div>`}
+
+// ---------- 25 opgavetyper ----------
+// GEN-START
+const TYPES=[
+{id:'brok-plus',topic:'Tal og algebra',title:'Læg brøker sammen',
+ method:['Find en fællesnævner: det mindste tal, som begge nævnere går op i.','Forlæng hver brøk, så den får fællesnævneren (gang tæller og nævner med det samme tal).','Læg tællerne sammen. Nævneren bliver stående.','Forkort brøken, hvis tæller og nævner kan deles med det samme tal.'],
+ tip:'Du må aldrig lægge nævnerne sammen. ½ + ½ er 1, ikke 2/4.',
+ gen(){const b=pick([2,3,4,5,6,8]),d=pick([3,4,5,6,8,10,12].filter(x=>x!==b));const a=ri(1,b-1),c=ri(1,d-1);const L=lcm(b,d),A=a*L/b,C=c*L/d,g=gcd(A+C,L);
+  return {q:`Beregn ${F(a,b)} + ${F(c,d)}`,hint:'Skriv svaret som en brøk, fx 7/12.',answers:[{value:(A+C)/L,show:FR(A+C,L)}],
+  steps:[`Fællesnævneren for ${b} og ${d} er ${L}.`,`Forlæng: ${F(a,b)} = ${F(A,L)} og ${F(c,d)} = ${F(C,L)}.`,`Læg tællerne sammen: ${F(A,L)} + ${F(C,L)} = ${F(A+C,L)}.`,g>1?`Forkort med ${g}: ${FR(A+C,L)}.`:'Brøken kan ikke forkortes.']}}},
+
+{id:'brok-gange',topic:'Tal og algebra',title:'Gange og dividere brøker',
+ method:['Ved gange: gang tæller med tæller og nævner med nævner.','Ved division: vend den anden brøk om (byt tæller og nævner) og gang i stedet.','Forkort resultatet så meget som muligt.'],
+ tip:'Huskeregel for division: "Vend den sidste og gang".',
+ gen(){const div=Math.random()<.5;const b=ri(2,9),d=ri(2,9),a=ri(1,b-1),c=ri(1,d-1);
+  if(div){const n=a*d,m=b*c;return {q:`Beregn ${F(a,b)} : ${F(c,d)}`,hint:'Skriv svaret som en brøk eller et helt tal.',answers:[{value:n/m,show:FR(n,m)}],
+   steps:[`At dividere med ${F(c,d)} er det samme som at gange med ${F(d,c)}.`,`${F(a,b)} · ${F(d,c)} = ${F(n,m)}.`,gcd(n,m)>1?`Forkort med ${gcd(n,m)}: ${FR(n,m)}.`:'Brøken kan ikke forkortes.']}}
+  const n=a*c,m=b*d;return {q:`Beregn ${F(a,b)} · ${F(c,d)}`,hint:'Skriv svaret som en brøk.',answers:[{value:n/m,show:FR(n,m)}],
+   steps:[`Gang tællerne: ${a} · ${c} = ${n}. Gang nævnerne: ${b} · ${d} = ${m}.`,`Resultat: ${F(n,m)}.`,gcd(n,m)>1?`Forkort med ${gcd(n,m)}: ${FR(n,m)}.`:'Brøken kan ikke forkortes.']}}},
+
+{id:'decimal-gange',topic:'Tal og algebra',title:'Gange decimaltal',
+ method:['Fjern kommaerne og gang tallene som hele tal.','Tæl hvor mange cifre der står efter kommaet i begge tal tilsammen.','Sæt kommaet i resultatet, så det har lige så mange decimaler.','Lav et overslag for at tjekke, at svaret er rimeligt.'],
+ tip:'Når man ganger med et tal mellem 0 og 1, bliver resultatet mindre end det andet tal.',
+ gen(){const A=Math.random()<.5?ri(2,9):ri(12,48),da=1,B=ri(2,9),db=pick([1,2]);const a=A/10,b=B/10**db,k=da+db,val=A*B/10**k;
+  const raw=(A*B/10**k).toFixed(k).replace('.',',');const pretty=fmt(val);
+  return {q:`Beregn ${fmt(a)} · ${fmt(b)}`,answers:[{value:val,show:pretty}],
+  steps:[`Regn uden komma: ${A} · ${B} = ${A*B}.`,`${fmt(a)} har ${da} decimal og ${fmt(b)} har ${db}. I alt ${k} decimaler.`,`Sæt kommaet, så der er ${k} decimaler: ${raw}${raw!==pretty?' = '+pretty:''}.`]}}},
+
+{id:'regnehierarki',topic:'Tal og algebra',title:'Regnearternes hierarki',
+ method:['Regn først det, der står i parenteser.','Regn derefter potenser og rødder.','Så gange og division (fra venstre mod højre).','Til sidst plus og minus (fra venstre mod højre).'],
+ tip:'Skriv mellemregningerne ned i en ny linje for hvert trin. Så overser du ikke noget.',
+ gen(){const a=ri(2,20),b=ri(2,9),c=ri(2,9),e=ri(2,5),d=e*ri(2,9);const res=a+b*c-d/e;
+  return {q:`Beregn ${a} + ${b} · ${c} − ${d} : ${e}`,answers:[{value:res,show:fmt(res)}],
+  steps:[`Gange og division først: ${b} · ${c} = ${b*c} og ${d} : ${e} = ${d/e}.`,`Udtrykket bliver ${a} + ${b*c} − ${d/e}.`,`Plus og minus fra venstre: ${a+b*c} − ${d/e} = ${fmt(res)}.`]}}},
+
+{id:'negative',topic:'Tal og algebra',title:'Regn med negative tal',
+ method:['Find ud af, hvilken regneart du skal starte med (hierarkiet gælder også her).','Ved gange og division: to ens fortegn giver plus, to forskellige giver minus.','Minus et negativt tal er det samme som plus: − (−3) = + 3.','Regn til sidst plus og minus fra venstre mod højre. Tænk evt. på en tallinje.'],
+ tip:'(−4)² = 16, men −4² = −16. Parentesen bestemmer om minus også skal sættes i anden.',
+ gen(){const v=ri(1,3),a=ri(2,9),b=ri(2,9),c=ri(2,15);
+  if(v===1){const r=-a*b+c;return {q:`Beregn −${a} · ${b} − (−${c})`,answers:[{value:r,show:fmt(r)}],steps:[`Gange først: −${a} · ${b} = −${a*b} (forskellige fortegn giver minus).`,`Minus minus giver plus: − (−${c}) = + ${c}.`,`−${a*b} + ${c} = ${fmt(r)}.`]}}
+  if(v===2){const r=a*a-c;return {q:`Beregn (−${a})${'<sup>2</sup>'} − ${c}`,answers:[{value:r,show:fmt(r)}],steps:[`Potens først: (−${a})² = (−${a}) · (−${a}) = ${a*a}, fordi minus gange minus giver plus.`,`${a*a} − ${c} = ${fmt(r)}.`]}}
+  const r=a*b-c;return {q:`Beregn (−${a}) · (−${b}) − ${c}`,answers:[{value:r,show:fmt(r)}],steps:[`Gange først: (−${a}) · (−${b}) = ${a*b}, fordi to minusser giver plus.`,`${a*b} − ${c} = ${fmt(r)}.`]}}},
+
+{id:'procent-af',topic:'Tal og algebra',title:'Procent af et tal',
+ method:['Find 1 % ved at dividere tallet med 100 (eller 10 % ved at dividere med 10).','Gang op til den procent, du skal bruge.','Brug genveje: 50 % er det halve, 25 % er en fjerdedel, 5 % er det halve af 10 %.'],
+ tip:'Procent betyder "hundrededele". 15 % = 15/100 = 0,15.',
+ gen(){const p=pick([5,10,15,20,25,30,40,60,75]),N=20*ri(5,60);const r=N*p/100;
+  return {q:`Hvor meget er ${p} % af ${fmt(N)} kr.?`,answers:[{value:r,show:fmt(r)+' kr.',unit:'kr.'}],
+  steps:[`10 % af ${fmt(N)} er ${fmt(N)} : 10 = ${fmt(N/10)}.`,`${p} % er ${fmt(p/10)} gange så meget: ${fmt(p/10)} · ${fmt(N/10)} = ${fmt(r)}.`,`Svar: ${fmt(r)} kr.`]}}},
+
+{id:'rabat',topic:'Tal og algebra',title:'Rabat og ny pris',
+ method:['Find rabatten i kroner: procentdelen af den gamle pris.','Træk rabatten fra den gamle pris.','Alternativt: en rabat på p % betyder, at du betaler (100 − p) % af prisen.','Tjek at den nye pris er mindre end den gamle.'],
+ tip:'25 % rabat = du betaler 75 % = tre fjerdedele af prisen.',
+ gen(){const p=pick([10,20,25,30,40,50]),Pr=20*ri(5,75);const d=Pr*p/100,r=Pr-d;
+  return {q:`En jakke koster ${fmt(Pr)} kr. Prisen sættes ned med ${p} %. Hvad koster jakken nu?`,answers:[{value:r,show:fmt(r)+' kr.',unit:'kr.'}],
+  steps:[`Rabatten er ${p} % af ${fmt(Pr)}: 10 % = ${fmt(Pr/10)}, så ${p} % = ${fmt(d)} kr.`,`Ny pris: ${fmt(Pr)} − ${fmt(d)} = ${fmt(r)} kr.`]}}},
+
+{id:'potenser',topic:'Tal og algebra',title:'Potenser',
+ method:['En potens aⁿ betyder a ganget med sig selv n gange: 2³ = 2 · 2 · 2.','Gange med samme grundtal: læg eksponenterne sammen (aᵐ · aⁿ = aᵐ⁺ⁿ).','Potens af en potens: gang eksponenterne ((aᵐ)ⁿ = aᵐ·ⁿ).','Regn potenser ud før gange, plus og minus.'],
+ tip:'3² er 9, ikke 6. Eksponenten fortæller hvor mange gange, ikke hvad der skal ganges med.',
+ gen(){const v=ri(1,3);
+  if(v===1){const a=ri(2,5),m=a===5?2:ri(2,3),b=ri(2,4),n=ri(2,3),r=a**m+b**n;return {q:`Beregn ${P(a,m)} + ${P(b,n)}`,answers:[{value:r,show:fmt(r)}],steps:[`${P(a,m)} = ${rep(a,m)} = ${a**m}.`,`${P(b,n)} = ${rep(b,n)} = ${b**n}.`,`${a**m} + ${b**n} = ${r}.`]}}
+  const a=ri(2,9);
+  if(v===2){const m=ri(2,6),n=ri(2,6);return {q:`Skriv ${P(a,m)} · ${P(a,n)} som én potens af ${a}. Hvad bliver eksponenten?`,answers:[{label:'Eksponent',value:m+n,show:`${m+n} (altså ${P(a,m+n)})`}],steps:[`Samme grundtal (${a}), så eksponenterne lægges sammen.`,`${m} + ${n} = ${m+n}, altså ${P(a,m+n)}.`]}}
+  const m=ri(2,5),n=ri(2,4);return {q:`Skriv (${P(a,m)})<sup>${n}</sup> som én potens af ${a}. Hvad bliver eksponenten?`,answers:[{label:'Eksponent',value:m*n,show:`${m*n} (altså ${P(a,m*n)})`}],steps:[`En potens opløftet i en potens: eksponenterne ganges.`,`${m} · ${n} = ${m*n}, altså ${P(a,m*n)}.`]}}},
+
+{id:'kvadratrod',topic:'Tal og algebra',title:'Kvadratrødder',
+ method:['Kvadratroden af et tal er det tal, der ganget med sig selv giver tallet: √49 = 7, fordi 7 · 7 = 49.','Kend kvadrattallene udenad: 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144.','Regn rødderne ud først, derefter gange, plus og minus.'],
+ tip:'√16 + √9 er 4 + 3 = 7. Det er ikke det samme som √25.',
+ gen(){const a=ri(2,12),b=ri(2,10);
+  if(Math.random()<.5){const r=a+b;return {q:`Beregn √${a*a} + √${b*b}`,answers:[{value:r,show:fmt(r)}],steps:[`√${a*a} = ${a}, fordi ${a} · ${a} = ${a*a}.`,`√${b*b} = ${b}, fordi ${b} · ${b} = ${b*b}.`,`${a} + ${b} = ${r}.`]}}
+  const k=ri(2,9),r=k*a;return {q:`Beregn ${k} · √${a*a}`,answers:[{value:r,show:fmt(r)}],steps:[`√${a*a} = ${a}, fordi ${a} · ${a} = ${a*a}.`,`${k} · ${a} = ${r}.`]}}},
+
+{id:'ligning-1',topic:'Tal og algebra',title:'Løs en ligning',
+ method:['Mål: få x alene på den ene side af lighedstegnet.','Fjern først tallet, der lægges til eller trækkes fra: gør det modsatte på begge sider.','Divider derefter med tallet foran x på begge sider.','Gør prøve: sæt dit x ind i den oprindelige ligning og se om begge sider er lige store.'],
+ tip:'Hvad du gør på den ene side, skal du også gøre på den anden.',
+ gen(){const a=ri(2,9),x=ri(-4,10);let b=ri(-15,15);if(b===0)b=7;const c=a*x+b;
+  return {q:`Løs ligningen <b>${cx(a)}${sg(b)} = ${fmt(c)}</b>`,answers:[{label:'x =',value:x,show:'x = '+fmt(x)}],
+  steps:[`${b>0?`Træk ${b} fra`:`Læg ${-b} til`} på begge sider: ${cx(a)} = ${fmt(c-b)}.`,`Divider med ${a} på begge sider: x = ${fmt(c-b)} : ${a} = ${fmt(x)}.`,`Prøve: ${a} · ${par(x)}${sg(b)} = ${fmt(c)}. Det passer.`]}}},
+
+{id:'ligning-2',topic:'Tal og algebra',title:'Ligning med x på begge sider',
+ method:['Saml alle x-led på den ene side: træk det mindste x-led fra på begge sider.','Saml alle tal på den anden side.','Divider med tallet foran x.','Gør prøve ved at sætte x ind på begge sider af den oprindelige ligning.'],
+ tip:'Flyt x-leddet med det mindste tal foran. Så undgår du negative x\'er.',
+ gen(){const c=ri(1,5),a=c+ri(1,5),x=ri(-3,8),b=ri(-10,10);const d=a*x+b-c*x,k=a-c;
+  return {q:`Løs ligningen <b>${cx(a)}${sg(b)} = ${cx(c)}${sg(d)}</b>`,answers:[{label:'x =',value:x,show:'x = '+fmt(x)}],
+  steps:[`Træk ${cx(c)} fra på begge sider: ${cx(k)}${sg(b)} = ${fmt(d)}.`,b===0?`Der er ikke noget tal at flytte: ${cx(k)} = ${fmt(d)}.`:`${b>0?`Træk ${b} fra`:`Læg ${-b} til`} på begge sider: ${cx(k)} = ${fmt(d-b)}.`,k===1?`Altså x = ${fmt(x)}.`:`Divider med ${k}: x = ${fmt(d-b)} : ${k} = ${fmt(x)}.`,`Prøve: venstre side ${a} · ${par(x)}${sg(b)} = ${fmt(a*x+b)}, højre side ${c} · ${par(x)}${sg(d)} = ${fmt(c*x+d)}.`]}}},
+
+{id:'formel',topic:'Tal og algebra',title:'Indsæt i en formel',
+ method:['Find ud af, hvad hvert bogstav i formlen står for.','Sæt tallet ind på bogstavets plads. Husk gangetegnet: 12x betyder 12 · x.','Regn ud efter regnearternes hierarki: gange før plus.','Skriv svaret med den rigtige enhed.'],
+ tip:'Læs teksten to gange og understreg det tal, du skal sætte ind.',
+ gen(){const a=ri(8,15),b=pick([30,35,40,45,50,55,60]),x=ri(3,20),r=a*x+b;
+  return {q:`Prisen y i kr. for en taxatur på x km kan beregnes med formlen <b>y = ${a}x + ${b}</b>. Hvad koster en tur på ${x} km?`,answers:[{value:r,show:fmt(r)+' kr.',unit:'kr.'}],
+  steps:[`Sæt x = ${x} ind: y = ${a} · ${x} + ${b}.`,`Gange først: ${a} · ${x} = ${a*x}.`,`${a*x} + ${b} = ${r}. Turen koster ${r} kr.`]}}},
+
+{id:'haeldning',topic:'Tal og algebra',title:'Hældning ud fra to punkter',
+ method:['Hældningen a fortæller, hvor meget y ændrer sig, når x vokser med 1.','Find ændringen i y: y₂ − y₁.','Find ændringen i x: x₂ − x₁.','Divider: a = (y₂ − y₁) : (x₂ − x₁). Pas på fortegnene.'],
+ tip:'Går linjen nedad fra venstre mod højre, er hældningen negativ.',
+ gen(){let a=ri(-4,4);if(a===0)a=2;const x1=ri(-3,3),dx=ri(1,4),y1=ri(-5,5),x2=x1+dx,y2=y1+a*dx;
+  return {q:`En ret linje går gennem punkterne (${fmt(x1)}, ${fmt(y1)}) og (${fmt(x2)}, ${fmt(y2)}). Hvad er linjens hældning?`,answers:[{label:'a =',value:a,show:'a = '+fmt(a)}],
+  steps:[`Ændring i y: ${fmt(y2)} − ${par(y1)} = ${fmt(y2-y1)}.`,`Ændring i x: ${fmt(x2)} − ${par(x1)} = ${fmt(dx)}.`,`a = ${fmt(y2-y1)} : ${dx} = ${fmt(a)}.`]}}},
+
+{id:'proportional',topic:'Tal og algebra',title:'Pris pr. enhed',
+ method:['Find prisen for 1 enhed: divider den samlede pris med antallet.','Gang prisen for 1 enhed med det antal, du skal bruge.','Tjek: flere enheder skal koste mere, færre skal koste mindre.'],
+ tip:'Denne metode hedder enhedsmetoden. Den virker til alle "hvis 3 koster... hvad koster 7?"-opgaver.',
+ gen(){const u=ri(6,25),n=ri(2,6);let m=ri(2,9);if(m===n)m++;
+  return {q:`${n} kg æbler koster ${n*u} kr. Hvad koster ${m} kg æbler?`,answers:[{value:u*m,show:fmt(u*m)+' kr.',unit:'kr.'}],
+  steps:[`Pris for 1 kg: ${n*u} : ${n} = ${u} kr.`,`Pris for ${m} kg: ${u} · ${m} = ${u*m} kr.`]}}},
+
+{id:'reducer',topic:'Tal og algebra',title:'Reducer et udtryk',
+ method:['Gang ind i parentesen: tallet foran ganges med hvert led indeni.','Saml alle x-led for sig (læg tallene foran x sammen).','Saml alle tal uden x for sig.','Skriv resultatet på formen ax + b.'],
+ tip:'Hold øje med fortegnet foran hvert led. Det følger med, når du flytter rundt.',
+ gen(){const k=ri(2,5),m=ri(1,6),n=ri(1,9);let j=ri(-3,3);if(j===0||k+j===0)j=1;const A=k+j,B=k*m-n;
+  return {q:`Reducer udtrykket <b>${k}(x + ${m})${sgx(j)} − ${n}</b> og skriv det på formen ax + b.`,hint:'Skriv tallet a og tallet b i hver sin boks.',
+  answers:[{label:'a =',value:A,show:'a = '+fmt(A)},{label:'b =',value:B,show:'b = '+fmt(B)}],
+  steps:[`Gang ind i parentesen: ${k}(x + ${m}) = ${k}x + ${k*m}.`,`Udtrykket er nu ${k}x + ${k*m}${sgx(j)} − ${n}.`,`Saml x-led: ${k}x${sgx(j)} = ${cx(A)}.`,`Saml tal: ${k*m} − ${n} = ${fmt(B)}.`,`Resultat: ${cx(A)}${sg(B)}, altså a = ${fmt(A)} og b = ${fmt(B)}.`]}}},
+
+{id:'pythagoras',topic:'Geometri og måling',title:'Pythagoras\' sætning',
+ method:['Find den rette vinkel. Siden overfor den er hypotenusen c (den længste side).','Skriv sætningen: a² + b² = c².','Søger du c: læg kvadraterne af kateterne sammen og tag kvadratroden.','Søger du en katete: træk det kendte katete-kvadrat fra c² og tag kvadratroden.'],
+ tip:'Kend de klassiske trekanter: 3-4-5, 6-8-10, 5-12-13 og 8-15-17.',
+ gen(){const [p,q,r]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[12,16,20]]);
+  if(Math.random()<.5)return {q:`En retvinklet trekant har kateterne ${p} cm og ${q} cm. Hvor lang er hypotenusen?`,fig:rightTri(p+' cm',q+' cm','?'),answers:[{value:r,show:r+' cm',unit:'cm'}],
+   steps:[`c² = ${p}² + ${q}² = ${p*p} + ${q*q} = ${r*r}.`,`c = √${r*r} = ${r} cm.`]};
+  return {q:`En retvinklet trekant har hypotenusen ${r} cm, og den ene katete er ${p} cm. Hvor lang er den anden katete?`,fig:rightTri(p+' cm','?',r+' cm'),answers:[{value:q,show:q+' cm',unit:'cm'}],
+   steps:[`b² = c² − a² = ${r}² − ${p}² = ${r*r} − ${p*p} = ${q*q}.`,`b = √${q*q} = ${q} cm.`]}}},
+
+{id:'trekant-areal',topic:'Geometri og måling',title:'Areal af en trekant',
+ method:['Find grundlinjen g og den højde h, der står vinkelret på grundlinjen.','Brug formlen A = ½ · h · g.','Det kan være lettest først at gange g og h og så halvere.','Arealet har enheden cm² (kvadratcentimeter).'],
+ tip:'Højden er ikke en af trekantens sider, medmindre trekanten er retvinklet.',
+ gen(){const g=2*ri(2,10),h=ri(3,15),A=g*h/2;
+  return {q:`Beregn arealet af trekanten. Grundlinjen er ${g} cm og højden er ${h} cm.`,fig:areaTri(g,h),answers:[{value:A,show:fmt(A)+' cm²',unit:'cm²'}],
+  steps:[`A = ½ · h · g = ½ · ${h} · ${g}.`,`${h} · ${g} = ${h*g}.`,`Halvdelen af ${h*g} er ${fmt(A)} cm².`]}}},
+
+{id:'cirkel',topic:'Geometri og måling',title:'Cirklens omkreds og areal',
+ method:['Find radius r (halvdelen af diameteren, hvis diameteren er givet).','Omkreds: O = 2 · π · r. Areal: A = π · r².','Uden lommeregner bruger man ofte π ≈ 3 eller π ≈ 3,14.','Husk enheden: omkreds i cm, areal i cm².'],
+ tip:'r² betyder r · r. Regn det ud før du ganger med π.',
+ gen(){const r=ri(2,10),area=Math.random()<.5;
+  if(area)return {q:`En cirkel har radius ${r} cm. Beregn cirklens areal. Brug π ≈ 3.`,answers:[{value:3*r*r,show:3*r*r+' cm²',unit:'cm²'}],steps:[`A = π · r² ≈ 3 · ${r}².`,`${r}² = ${r} · ${r} = ${r*r}.`,`3 · ${r*r} = ${3*r*r} cm².`]};
+  return {q:`En cirkel har diameter ${2*r} cm. Beregn cirklens omkreds. Brug π ≈ 3.`,answers:[{value:6*r,show:6*r+' cm',unit:'cm'}],steps:[`Diameteren er ${2*r} cm, så radius er ${r} cm.`,`O = 2 · π · r ≈ 2 · 3 · ${r}.`,`2 · 3 · ${r} = ${6*r} cm. (Det er det samme som π · d = 3 · ${2*r}.)`]}}},
+
+{id:'rumfang',topic:'Geometri og måling',title:'Rumfang af en kasse',
+ method:['Find længde, bredde og højde, og tjek at de har samme enhed.','Brug formlen V = l · b · h.','Gang to af tallene først, så det tredje. Vælg en rækkefølge der er let at regne.','Rumfanget har enheden cm³.'],
+ tip:'1.000 cm³ = 1 liter. Det er godt at vide, hvis du skal svare i liter.',
+ gen(){const l=ri(2,12),b=ri(2,10),h=ri(2,10),V=l*b*h;
+  return {q:`En kasse er ${l} cm lang, ${b} cm bred og ${h} cm høj. Hvad er kassens rumfang?`,answers:[{value:V,show:fmt(V)+' cm³',unit:'cm³'}],
+  steps:[`V = l · b · h = ${l} · ${b} · ${h}.`,`${l} · ${b} = ${l*b}.`,`${l*b} · ${h} = ${fmt(V)} cm³.`]}}},
+
+{id:'vinkler',topic:'Geometri og måling',title:'Vinkelsum i trekant',
+ method:['Vinklerne i en trekant giver altid 180° tilsammen.','Læg de kendte vinkler sammen.','Træk summen fra 180°.','I en ligebenet trekant er de to vinkler ved grundlinjen lige store.'],
+ tip:'I en firkant er vinkelsummen 360°.',
+ gen(){if(Math.random()<.5){const A=ri(25,95),B=ri(20,150-A),C=180-A-B;return {q:`I en trekant er to af vinklerne ${A}° og ${B}°. Hvor stor er den tredje vinkel?`,answers:[{value:C,show:C+'°',unit:'°'}],steps:[`De kendte vinkler: ${A}° + ${B}° = ${A+B}°.`,`180° − ${A+B}° = ${C}°.`]}}
+  const t=2*ri(10,70),v=(180-t)/2;return {q:`En ligebenet trekant har en topvinkel på ${t}°. Hvor store er hver af de to vinkler ved grundlinjen?`,answers:[{value:v,show:v+'°',unit:'°'}],steps:[`Tilbage til de to grundvinkler: 180° − ${t}° = ${180-t}°.`,`De er lige store: ${180-t}° : 2 = ${v}°.`]}}},
+
+{id:'enheder',topic:'Geometri og måling',title:'Omregning af enheder',
+ method:['Find sammenhængen mellem enhederne (fx 1 m = 100 cm, 1 L = 1.000 ml).','Går du til en mindre enhed, bliver tallet større: gang.','Går du til en større enhed, bliver tallet mindre: divider.','Ved areal ganges forholdet med sig selv (1 m² = 100 · 100 cm²), ved rumfang tre gange.'],
+ tip:'Gang eller divider med 10, 100 eller 1.000 ved at flytte kommaet 1, 2 eller 3 pladser.',
+ gen(){const v=ri(1,6);
+  if(v===1){const x=ri(1,8)+pick([0,.25,.5,.75]);return {q:`Hvor mange ml er ${fmt(x)} L?`,answers:[{value:x*1000,show:fmt(x*1000)+' ml',unit:'ml'}],steps:['1 L = 1.000 ml.',`${fmt(x)} · 1.000 = ${fmt(x*1000)} ml (kommaet flyttes 3 pladser til højre).`]}}
+  if(v===2){const x=ri(105,995)/100;return {q:`Hvor mange cm er ${fmt(x)} m?`,answers:[{value:r9(x*100),show:fmt(x*100)+' cm',unit:'cm'}],steps:['1 m = 100 cm.',`${fmt(x)} · 100 = ${fmt(x*100)} cm (kommaet flyttes 2 pladser til højre).`]}}
+  if(v===3){const c=500*ri(1,9);return {q:`Hvor mange liter er ${fmt(c)} cm³?`,answers:[{value:c/1000,show:fmt(c/1000)+' L',unit:'L'}],steps:['1.000 cm³ = 1 L.',`${fmt(c)} : 1.000 = ${fmt(c/1000)} L.`]}}
+  if(v===4){const x=pick([1,2,3,4,1.5,2.5]);return {q:`Hvor mange cm² er ${fmt(x)} m²?`,answers:[{value:x*10000,show:fmt(x*10000)+' cm²',unit:'cm²'}],steps:['1 m = 100 cm, så 1 m² = 100 cm · 100 cm = 10.000 cm².',`${fmt(x)} · 10.000 = ${fmt(x*10000)} cm².`]}}
+  if(v===5){const x=ri(11,99)/10;return {q:`Hvor mange meter er ${fmt(x)} km?`,answers:[{value:r9(x*1000),show:fmt(x*1000)+' m',unit:'m'}],steps:['1 km = 1.000 m.',`${fmt(x)} · 1.000 = ${fmt(x*1000)} m.`]}}
+  const m=pick([15,30,45,90,150,210]);return {q:`Hvor mange timer er ${m} minutter? Svar med decimaltal.`,answers:[{value:m/60,show:fmt(m/60)+' timer',unit:'timer'}],steps:['1 time = 60 minutter.',`${m} : 60 = ${fmt(m/60)} timer.`]}}},
+
+{id:'malestok',topic:'Geometri og måling',title:'Målestoksforhold på kort',
+ method:['1 : 25.000 betyder, at 1 cm på kortet er 25.000 cm i virkeligheden.','Gang afstanden på kortet med tallet efter kolon.','Omregn til den enhed spørgsmålet beder om: 100 cm = 1 m og 1.000 m = 1 km.','Det hurtigste: 100.000 cm = 1 km.'],
+ tip:'Store tal efter kolon betyder at kortet viser et stort område med få detaljer.',
+ gen(){const k=pick([10000,20000,25000,50000]),d=ri(2,12),cm=d*k,km=cm/100000;
+  return {q:`Et kort har målestoksforholdet 1 : ${fmt(k)}. På kortet er der ${d} cm mellem to byer. Hvor langt er der i virkeligheden?`,answers:[{value:km,show:fmt(km)+' km',unit:'km'}],
+  steps:[`1 cm på kortet er ${fmt(k)} cm i virkeligheden.`,`${d} · ${fmt(k)} = ${fmt(cm)} cm.`,`${fmt(cm)} cm = ${fmt(cm/100)} m = ${fmt(km)} km.`]}}},
+
+{id:'middelvaerdi',topic:'Statistik og sandsynlighed',title:'Middelværdi (gennemsnit)',
+ method:['Læg alle observationerne sammen.','Tæl hvor mange observationer der er.','Divider summen med antallet.','Tjek at svaret ligger mellem den mindste og den største værdi.'],
+ tip:'Middelværdi og gennemsnit er det samme.',
+ gen(){const xs=Array.from({length:4},()=>ri(2,20));let s=xs.reduce((a,b)=>a+b,0),f=ri(2,20);f+=(5-(s+f)%5)%5;if(f>22)f-=5;xs.push(f);s+=f;const m=s/5;
+  return {q:`Fem elever har talt, hvor mange sider de har læst i en uge (i hundreder): <b>${xs.join(', ')}</b>. Beregn middelværdien.`,answers:[{value:m,show:fmt(m)}],
+  steps:[`Summen: ${xs.join(' + ')} = ${s}.`,`Antal observationer: 5.`,`Middelværdi: ${s} : 5 = ${fmt(m)}.`]}}},
+
+{id:'median',topic:'Statistik og sandsynlighed',title:'Median',
+ method:['Sortér observationerne fra mindst til størst.','Ulige antal: medianen er tallet i midten.','Lige antal: medianen er gennemsnittet af de to midterste tal.','Medianen deler observationerne i to lige store halvdele.'],
+ tip:'Glem ikke at sortere. Det er den mest almindelige fejl.',
+ gen(){const n=pick([7,8]),xs=Array.from({length:n},()=>ri(1,30)),s=[...xs].sort((a,b)=>a-b);
+  if(n===7)return {q:`Find medianen af tallene: <b>${xs.join(', ')}</b>`,answers:[{value:s[3],show:fmt(s[3])}],steps:[`Sortér: ${s.join(', ')}.`,`Der er 7 tal, så medianen er det 4. tal: ${s[3]}.`]};
+  const m=(s[3]+s[4])/2;return {q:`Find medianen af tallene: <b>${xs.join(', ')}</b>`,answers:[{value:m,show:fmt(m)}],steps:[`Sortér: ${s.join(', ')}.`,`Der er 8 tal, så medianen er gennemsnittet af det 4. og 5. tal.`,`(${s[3]} + ${s[4]}) : 2 = ${fmt(m)}.`]}}},
+
+{id:'sandsynlighed',topic:'Statistik og sandsynlighed',title:'Sandsynlighed',
+ method:['Tæl alle mulige udfald (fx alle kugler i posen).','Tæl de gunstige udfald (dem du ønsker).','Sandsynlighed = gunstige : mulige. Skriv det som en brøk.','Forkort brøken. Du kan også skrive den som decimaltal eller procent.'],
+ tip:'En sandsynlighed ligger altid mellem 0 og 1 (mellem 0 % og 100 %).',
+ gen(){const c={rod:ri(1,8),bla:ri(1,8),gron:ri(1,6)};const tot=c.rod+c.bla+c.gron;const k=pick(['rod','bla','gron']);const nm={rod:'rød',bla:'blå',gron:'grøn'}[k];const f=c[k];
+  return {q:`I en pose er der ${c.rod} røde, ${c.bla} blå og ${c.gron} grønne kugler. Du trækker én kugle uden at kigge. Hvad er sandsynligheden for at trække en ${nm} kugle?`,hint:'Skriv som brøk (fx 3/10), decimaltal eller procent.',answers:[{value:f/tot,show:FR(f,tot),pct:true}],
+  steps:[`Mulige udfald: ${c.rod} + ${c.bla} + ${c.gron} = ${tot} kugler.`,`Gunstige udfald: ${f} ${nm==='rød'?'røde':nm==='blå'?'blå':'grønne'}.`,`P = ${F(f,tot)}${gcd(f,tot)>1?' = '+FR(f,tot):''}.`]}}},
+];
+// GEN-END
+
+// ---------- illustrationer til "Sådan løser du den" ----------
+const fig=(w,h,label,body)=>`<figure class="ill"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>${body}</svg><figcaption>${label}</figcaption></figure>`;
+const t=(x,y,s,c='',a='middle')=>`<text x="${x}" y="${y}" text-anchor="${a}" class="${c}">${s}</text>`;
+const ar=(x1,y1,x2,y2)=>`<path d="M${x1} ${y1}L${x2} ${y2}" class="ln thin" marker-end="url(#ah)"/>`;
+const arc=(d)=>`<path d="${d}" class="ln thin" marker-end="url(#ah)"/>`;
+const rc=(x,y,w,h,c='fe',rx=0)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" class="${c}"/>`;
+const bar=(x,y,w,h,n,k,c='fa')=>{let s='';const u=w/n;for(let i=0;i<n;i++)s+=rc(+(x+i*u).toFixed(1),y,+u.toFixed(1),h,i<k?c:'fe');return s};
+const sup=s=>`<tspan dy="-7" class="xs">${s}</tspan><tspan dy="7"> </tspan>`;
+function wedge(cx,cy,r,a1,a2,c){const p=a=>[(cx+r*Math.cos(a*Math.PI/180)).toFixed(1),(cy-r*Math.sin(a*Math.PI/180)).toFixed(1)];const [x1,y1]=p(a1),[x2,y2]=p(a2);
+  return `<path d="M${cx} ${cy}L${x1} ${y1}A${r} ${r} 0 ${a2-a1>180?1:0} 0 ${x2} ${y2}Z" class="${c}"/>`}
+const dir=(P,Q)=>Math.atan2(P[1]-Q[1],Q[0]-P[0])*180/Math.PI;
+function angleAt(P,Q1,Q2,r,c){let a=dir(P,Q1),b=dir(P,Q2);if(a>b)[a,b]=[b,a];return wedge(P[0],P[1],r,a,b,c)}
+
+const ILL={
+'brok-plus':()=>fig(300,200,'Eksempel: ½ + ⅓ med fællesnævner 6',
+  bar(20,14,110,22,2,1)+t(150,31,'+','lg b')+bar(170,14,110,22,3,1)+t(75,54,'1/2','sm')+t(225,54,'1/3','sm')
+  +ar(150,62,150,84)+t(160,78,'forlæng til sjettedele','sm mu','start')
+  +bar(20,92,110,22,6,3)+t(150,109,'+','lg b')+bar(170,92,110,22,6,2)+t(75,132,'3/6','sm')+t(225,132,'2/6','sm')
+  +ar(150,140,150,160)+bar(80,166,120,22,6,5)+t(212,182,'= 5/6','b','start')),
+
+'brok-gange':()=>{let s='';for(let i=0;i<3;i++)for(let j=0;j<4;j++){const a=i<2,b=j<3;s+=rc(20+i*40,24+j*30,40,30,a&&b?'fA':(a||b)?'fa':'fe')}
+  return fig(310,176,'Eksempel: ⅔ · ¾ som et areal',s+t(80,16,'2/3 af bredden','xs mu')+`<text x="12" y="84" transform="rotate(-90 12 84)" text-anchor="middle" class="xs mu">3/4 af højden</text>`
+  +t(160,46,'2/3 · 3/4','b','start')+t(160,68,'= 6/12 = 1/2','','start')+t(160,92,'mørke felter: 6','sm mu','start')+t(160,108,'alle felter: 12','sm mu','start')
+  +t(160,140,'Division: vend og gang','sm b','start')+t(160,160,'a/b : c/d = a/b · d/c','sm','start'))},
+
+'decimal-gange':()=>fig(300,150,'Eksempel: 0,3 · 0,4',
+  [['Opgave',`0,<tspan class="ac b">3</tspan> · 0,<tspan class="ac b">4</tspan>`],['Uden komma','3 · 4 = 12'],['Decimaler','1 + 1 = 2'],['Svar',`0,<tspan class="ac b">12</tspan>`]]
+  .map(([a,b],i)=>t(12,30+i*36,a,'sm mu','start')+t(120,30+i*36,b,'lg','start')+(i<3?`<path d="M12 ${42+i*36}H288" class="lnm"/>`:'')).join('')),
+
+'regnehierarki':()=>fig(300,190,'Rækkefølgen du regner i',
+  [['Parenteser','( )'],['Potenser og rødder','x²  √'],['Gange og division','·  :'],['Plus og minus','+  −']].map(([a,b],i)=>{const w=190+i*30,x=150-w/2,y=8+i*44;
+   return rc(x,y,w,36,i===0?'fA':'fa',6)+t(x+18,y+23,i+1,i===0?'ai b':'ac b')+t(x+36,y+23,a,i===0?'ai':'','start')+t(x+w-12,y+23,b,i===0?'ai b':'b','end')}).join('')),
+
+'negative':()=>{let s=`<path d="M15 60H285" class="ln"/>`;for(let n=-6;n<=6;n++){const x=30+(n+6)*20;s+=`<path d="M${x} 55V65" class="ln thin"/>`+t(x,82,n<0?'−'+(-n):n,'xs mu')}
+  return fig(300,170,'Tallinje: 2 − 5 = −3',s+arc('M190 52Q140 6 92 52')+t(140,22,'− 5','sm b')+`<circle cx="190" cy="60" r="5" class="dA"/><circle cx="90" cy="60" r="5" class="dR"/>`
+  +t(55,118,'+ · + = +','sm')+t(150,118,'− · − = +','sm')+t(245,118,'+ · − = −','sm')+t(150,150,'− (−3) er det samme som + 3','sm b'))},
+
+'procent-af':()=>{let s='';for(let i=0;i<10;i++)s+=t(33+i*26,82,'24','xs mu');
+  return fig(300,146,'Eksempel: 30 % af 240 kr.',t(150,22,'240 kr. = 100 %','b')+bar(20,34,260,30,10,3)+s
+  +t(20,110,'10 % = 240 : 10 = 24 kr.','sm','start')+t(20,134,'30 % = 3 · 24 = 72 kr.','b ac','start'))},
+
+'rabat':()=>fig(300,146,'Eksempel: 25 % rabat på 400 kr.',t(150,22,'Før: 400 kr. = 100 %','b')+rc(20,34,65,32,'fr')+rc(85,34,195,32,'fg')
+  +t(52,55,'25 %','sm rd b')+t(182,55,'75 %','sm gr b')+t(52,88,'rabat','sm rd')+t(52,104,'100 kr.','sm rd b')+t(182,88,'du betaler','sm gr')+t(182,104,'300 kr.','sm gr b')
+  +t(150,136,'400 − 100 = 300   eller   400 · 0,75 = 300','sm')),
+
+'potenser':()=>fig(300,166,'Hvad en potens betyder',
+  t(20,40,'2'+sup(3),'lg b','start')+t(58,40,'=  2 · 2 · 2  =  8','lg','start')
+  +`<path d="M80 50Q80 58 88 58H108Q115 58 115 64Q115 58 122 58H142Q150 58 150 50" class="lnm"/>`+t(115,80,'3 gange','sm mu')
+  +t(20,126,'2'+sup(3)+'· 2'+sup(4)+'= 2'+sup('3+4')+'= 2'+sup(7),'lg','start')+t(20,154,'Samme grundtal: læg eksponenterne sammen','sm mu','start')),
+
+'kvadratrod':()=>{let s='';for(let i=0;i<5;i++)for(let j=0;j<5;j++)s+=rc(24+i*24,16+j*24,24,24,'fa');
+  return fig(300,170,'√25 = 5: siden i et kvadrat med areal 25',s+t(84,156,'5','b')+t(12,80,'5','b')
+  +t(165,58,'Areal = 25','b','start')+t(165,86,'Side = √25 = 5','','start')+t(165,112,'fordi 5 · 5 = 25','sm mu','start'))},
+
+'ligning-1':()=>fig(300,232,'Ligningen er en vægt i balance',
+  rc(40,82,96,38,'fa',4)+t(88,107,'3x + 4','lg b')+rc(164,82,96,38,'fe',4)+t(212,107,'19','lg b')
+  +`<path d="M24 120H276" class="ln"/><path d="M150 120L134 150H166Z" class="ln"/>`+t(88,66,'venstre side','xs mu')+t(212,66,'højre side','xs mu')+t(150,30,'Begge sider vejer lige meget','sm b')
+  +t(12,174,'1) Træk 4 fra på begge sider:  3x = 15','sm','start')+t(12,196,'2) Divider begge sider med 3:  x = 5','sm b','start')
+  +t(12,220,'Det du gør ved den ene side, gør du ved den anden','xs mu','start')),
+
+'ligning-2':()=>fig(310,170,'Eksempel: 5x + 2 = 2x + 11',
+  [['5x + 2 = 2x + 11',''],['3x + 2 = 11','− 2x på begge sider'],['3x = 9','− 2 på begge sider'],['x = 3',': 3 på begge sider']]
+  .map(([a,b],i)=>t(16,30+i*40,a,i===3?'lg b ac':'lg','start')+(b?t(298,30+i*40,b,'sm mu','end'):'')+(i<3?`<path d="M16 ${42+i*40}H298" class="lnm"/>`:'')).join('')),
+
+'formel':()=>fig(300,166,'Sæt tallet ind på bogstavets plads',
+  t(60,34,'y = 12 ·','lg','start')+t(158,34,'x','lg ac b')+t(172,34,'+ 40','lg','start')+rc(20,70,84,32,'fa',4)+t(62,92,'x = 5','b')
+  +arc('M104 80Q150 74 156 44')+t(150,128,'y = 12 · 5 + 40','')+t(150,152,'= 60 + 40 = 100','b')),
+
+'haeldning':()=>{let s='';for(let i=0;i<=9;i++)s+=`<path d="M${20+i*20} 10V170M20 ${10+i*20 > 170 ? 170 : 10+i*20}H200" class="grid"/>`;
+  return fig(320,180,'Hældning: hvor meget y stiger, når x vokser',s+`<path d="M60 10V170M20 150H200" class="ln thin"/>`
+  +`<path d="M70 150L135 20" class="ln la"/><path d="M80 130H120V50" class="ln lr"/>`+t(100,146,'Δx = 2','xs rd b')+t(126,94,'Δy = 4','xs rd b','start')
+  +`<circle cx="80" cy="130" r="5" class="dA"/><circle cx="120" cy="50" r="5" class="dA"/>`
+  +t(212,60,'a = Δy : Δx','b','start')+t(212,86,'= 4 : 2 = 2','','start')+t(212,124,'Δ betyder','sm mu','start')+t(212,140,'"ændring i"','sm mu','start'))},
+
+'proportional':()=>fig(300,150,'Enhedsmetoden: find prisen for 1 først',
+  rc(10,46,80,56,'fe',6)+t(50,70,'3 kg','b')+t(50,92,'60 kr.')+rc(110,46,80,56,'fa',6)+t(150,70,'1 kg','b ac')+t(150,92,'20 kr.')+rc(210,46,80,56,'fe',6)+t(250,70,'5 kg','b')+t(250,92,'100 kr.')
+  +arc('M62 42Q100 10 138 42')+t(100,20,': 3','sm b')+arc('M162 42Q200 10 238 42')+t(200,20,'· 5','sm b')+t(150,132,'Først ned til 1, så op til det antal du skal bruge','sm mu')),
+
+'reducer':()=>fig(310,166,'Eksempel: 3(x + 2) + 2x − 1',
+  t(300,16,'blå = x-led · rød = tal','xs mu','end')
+  +t(30,56,'3','lg b')+t(46,56,'(','lg')+t(60,56,'x','lg ac b')+t(78,56,'+','lg')+t(96,56,'2','lg rd b')+t(110,56,')','lg')
+  +t(132,56,'+','lg')+t(156,56,'2x','lg ac b')+t(180,56,'−','lg')+t(198,56,'1','lg rd b')
+  +arc('M30 36Q44 18 58 36')+arc('M32 36Q64 8 94 36')
+  +t(30,104,'3x','lg ac b')+t(56,104,'+','lg')+t(76,104,'6','lg rd b')+t(98,104,'+','lg')+t(122,104,'2x','lg ac b')+t(146,104,'−','lg')+t(164,104,'1','lg rd b')+t(300,104,'gang ind','sm mu','end')
+  +t(30,150,'5x','lg ac b')+t(56,150,'+','lg')+t(76,150,'5','lg rd b')+t(300,150,'saml x-led og tal','sm mu','end')),
+
+'pythagoras':()=>fig(340,196,'3-4-5-trekanten: kvadraterne på siderne',
+  `<path d="M100 130H154V184H100Z" class="fa"/><path d="M28 58H100V130H28Z" class="fa"/><path d="M100 58L154 130L226 76L172 4Z" class="fg"/>`
+  +`<path d="M100 58V130H154Z" class="ln"/><path d="M100 120H110V130" class="ln thin"/>`
+  +t(127,162,'3² = 9','xs b')+t(64,98,'4² = 16','xs b')+t(163,71,'5² = 25','xs b gr')
+  +t(240,104,'a² + b² = c²','b','start')+t(240,130,'9 + 16 = 25','sm','start')+t(240,156,'c = √25 = 5','sm b','start')),
+
+'trekant-areal':()=>fig(310,170,'En trekant er halvdelen af et rektangel',
+  `<path d="M20 20H180V130H20Z" class="lnm dash"/><path d="M20 130L180 130L120 20Z" class="fa"/><path d="M120 20V130" class="ln la dash"/>`
+  +t(100,152,'g (grundlinje)','sm')+t(126,82,'h','b ac','start')
+  +t(198,40,'Trekanten fylder','sm','start')+t(198,58,'halvdelen af','sm','start')+t(198,76,'rektanglet g · h','sm','start')+t(198,124,'A = ½ · h · g','b','start')),
+
+'cirkel':()=>fig(300,170,'Radius, diameter og formlerne',
+  `<circle cx="80" cy="85" r="60" class="fa"/><path d="M80 25V145" class="ln thin dash"/><path d="M80 85H140" class="ln la"/><circle cx="80" cy="85" r="3.5" class="dA"/>`
+  +t(112,78,'r','b ac')+t(88,42,'d','b','start')
+  +t(165,40,'d = 2 · r','','start')+t(165,70,'O = 2 · π · r','b','start')+t(165,100,'A = π · r²','b','start')+t(165,130,'π ≈ 3 (eller 3,14)','sm mu','start')),
+
+'rumfang':()=>{let s='';for(let i=1;i<4;i++)s+=`<path d="M${30+i*30} 60V150" class="lnm"/>`;for(let j=1;j<3;j++)s+=`<path d="M30 ${60+j*30}H150" class="lnm"/>`;
+  return fig(300,180,'Kassen: bundareal gange højde',`<path d="M30 60L70 30H190L150 60Z" class="fe"/><path d="M150 60L190 30V120L150 150Z" class="fe"/>`+rc(30,60,120,90,'fa')+s
+  +`<path d="M30 60H150V150H30Z M30 60L70 30H190L150 60 M150 150L190 120V30" class="ln"/>`
+  +t(90,170,'l','b')+t(20,110,'h','b','end')+t(178,152,'b','b','start')
+  +t(210,70,'V = l · b · h','b','start')+t(210,100,'bund: l · b','sm','start')+t(210,120,'gange med h','sm','start')+t(210,150,'enhed: cm³','sm mu','start'))},
+
+'vinkler':()=>{const A=[20,130],B=[150,130],C=[70,30];const a=dir(A,B),c=180-dir(B,C),aA=dir(A,C)-a,aB=180-dir(B,C),aC=180-aA-aB;
+  return fig(310,166,'Vinklerne i en trekant giver 180°',angleAt(A,B,C,22,'fa')+angleAt(B,A,C,22,'fr')+angleAt(C,A,B,22,'fg')+`<path d="M20 130L150 130L70 30Z" class="ln"/>`
+  +wedge(240,124,55,0,aB,'fr')+wedge(240,124,55,aB,aB+aC,'fg')+wedge(240,124,55,aB+aC,180,'fa')+`<path d="M180 124H300" class="ln"/>`
+  +t(240,144,'= 180°','b')+t(155,160,'De tre vinkler lagt sammen danner en ret linje','xs mu'))},
+
+'enheder':()=>fig(310,200,'Længde-trappen',['km','hm','dam','m','dm','cm','mm'].map((u,i)=>rc(10+i*42,14+i*18,40,22,u==='m'?'fA':'fa',4)+t(30+i*42,30+i*18,u,u==='m'?'ai b':'b')).join('')
+  +t(300,28,'Op ad trappen:','sm b','end')+t(300,44,'divider med 10','sm','end')+t(12,120,'Ned ad trappen:','sm b','start')+t(12,136,'gang med 10','sm','start')
+  +t(155,172,'Areal: · 100 pr. trin  ·  Rumfang: · 1.000 pr. trin','xs mu')+t(155,192,'1 L = 1 dm³ = 1.000 cm³ = 1.000 ml','xs b')),
+
+'middelvaerdi':()=>{const v=[4,7,3,6,5];return fig(330,170,'Middelværdi: udjævn søjlerne',v.map((n,i)=>rc(20+i*44,130-n*14,30,n*14,'fa')+t(35+i*44,124-n*14,n,'xs b')).join('')
+  +`<path d="M14 130H244" class="ln"/><path d="M14 60H244" class="ln lr dash"/>`+t(250,64,'= 5','b rd','start')+t(165,158,'(4 + 7 + 3 + 6 + 5) : 5 = 25 : 5 = 5','sm'))},
+
+'median':()=>fig(300,170,'Median: sortér og find midten',[9,2,7,4,6].map((n,i)=>rc(42+i*44,14,36,32,'fe',4)+t(60+i*44,36,n,'b')).join('')
+  +ar(150,54,150,74)+t(160,68,'sortér','xs mu','start')
+  +[2,4,6,7,9].map((n,i)=>rc(42+i*44,80,36,32,i===2?'fA':'fe',4)+t(60+i*44,102,n,i===2?'ai b':'b')).join('')
+  +t(150,140,'Ulige antal: tallet i midten (her 6)','sm')+t(150,160,'Lige antal: gennemsnit af de to midterste','sm mu')),
+
+'sandsynlighed':()=>{const cols=['dA','dA','dA','dR','dR','dG','dG','dG','dG','dG'];
+  return fig(300,170,'3 blå, 2 røde og 5 grønne kugler',`<rect x="20" y="40" width="140" height="110" rx="34" class="lnm"/><path d="M70 40Q90 26 110 40" class="lnm"/>`
+  +cols.map((c,i)=>`<circle cx="${45+(i%5)*23}" cy="${80+Math.floor(i/5)*34}" r="10" class="${c}"/>`).join('')
+  +t(176,52,'P(rød) =','b','start')+t(176,74,'gunstige : mulige','xs mu','start')+t(176,104,'= 2/10 = 1/5','b','start')+t(176,130,'= 0,2 = 20 %','sm','start'))},
+
+'malestok':()=>{let s='';for(let i=0;i<=4;i++)s+=`<path d="M${20+i*40} 40V50" class="ln thin"/>`+t(20+i*40,66,i,'xs mu');
+  return fig(310,160,'Målestok 1 : 25.000',`<path d="M20 45H180" class="ln la"/><circle cx="20" cy="45" r="5" class="dA"/><circle cx="180" cy="45" r="5" class="dA"/>`+s
+  +t(100,24,'4 cm på kortet','sm b')+t(300,24,'1 : 25.000','b','end')+ar(150,76,150,92)
+  +t(150,112,'4 · 25.000 = 100.000 cm','')+t(150,136,'= 1.000 m = 1 km','b')+t(150,156,'Husk: 100.000 cm = 1 km','xs mu'))},
+};
+
+// ---------- svar-tjek ----------
+function num(t){if(t.includes(','))t=t.replace(/\./g,'').replace(',','.');else if(/^-?\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');if(!/^-?(\d+\.?\d*|\.\d+)$/.test(t))return NaN;return parseFloat(t)}
+function parseAns(s,allowPct){s=(s||'').trim().replace(/[−–]/g,'-').replace(/^[a-z]\s*=\s*/i,'');if(!s)return NaN;
+  let pct=false;if(/%\s*$/.test(s)){pct=true;s=s.replace(/%\s*$/,'')}
+  s=s.replace(/\s*(kr\.?|cm²|cm³|cm|m²|m|km|ml|l|liter|timer|grader|°)$/i,'').trim();
+  let v;const mixed=s.match(/^(-?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+  if(mixed){v=(+mixed[2]+ +mixed[3]/ +mixed[4])*(mixed[1]?-1:1)}
+  else{s=s.replace(/\s+/g,'');const fr=s.match(/^(-?[\d.,]+)\/(-?[\d.,]+)$/);v=fr?num(fr[1])/num(fr[2]):num(s)}
+  if(pct&&allowPct)v/=100;return v}
+const same=(v,t)=>Number.isFinite(v)&&Math.abs(v-t)<1e-6*Math.max(1,Math.abs(t));
+const checkOne=(inst,vals)=>inst.answers.map((a,i)=>same(parseAns(vals[i],a.pct),a.value));
+
+// ---------- tilstand ----------
+const S={screen:'start',test:[],idx:0,confirm:false,train:null};
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const readInputs=inst=>inst.answers.map((_,i)=>document.getElementById('a'+i)?.value??'');
+
+function inputsHTML(inst,vals,marks,disabled){return `<div class="answers">${inst.answers.map((a,i)=>`<label class="ans${marks?(marks[i]?' ok':' bad'):''}"><span class="lbl">${a.label||'Svar'}</span><input id="a${i}" autocomplete="off" spellcheck="false" value="${esc(vals?.[i]||'')}"${disabled?' disabled':''}>${a.unit?`<span class="unit">${a.unit}</span>`:''}</label>`).join('')}</div>`}
+const header=sub=>`<header class="top"><div><div class="eyebrow">Matematik · FP9 · Uden hjælpemidler</div><h1>FP9 uden hjælpemidler</h1></div><div class="sub">${sub||''}</div></header>`;
+const showAns=inst=>inst.answers.map(a=>a.show).join(' og ');
+
+// ---------- historik og karakter ----------
+// Omtrentlig omregning fra procent til 7-trinsskalaen. Den rigtige grænse fastsættes for hver prøve.
+const GRADES=[[90,'12'],[78,'10'],[60,'7'],[42,'4'],[25,'02'],[10,'00'],[0,'−3']];
+const grade=p=>GRADES.find(([m])=>p>=m)[1];
+const passed=g=>g!=='00'&&g!=='−3';
+const Hist={list:[],db:null,uid:null};
+function lsGet(){try{const a=JSON.parse(localStorage.getItem('fp9-historik')||'[]');return Array.isArray(a)?a:[]}catch{return []}}
+function lsSet(a){try{localStorage.setItem('fp9-historik',JSON.stringify(a.slice(0,50)))}catch{}}
+async function initHist(){Hist.list=lsGet().slice(0,10);
+  try{const db=await window.claude?.use?.('db');const user=db&&await claude.use('user');const id=user&&await user.id();
+    if(db&&id){const snap=await db.collection('data/users/'+id+'/runs').orderBy('at','desc').limit(10).get();
+      Hist.db=db;Hist.uid=id;Hist.list=snap.docs.map(d=>d.data()).filter(Boolean)}}catch(e){}
+  if(S.screen==='start')render()}
+async function recordRun(ok,n){const pct=Math.round(ok/n*100),r={at:Date.now(),ok,n,pct,grade:grade(pct)};Hist.list=[r,...Hist.list].slice(0,10);
+  if(Hist.db){try{await Hist.db.collection('data/users/'+Hist.uid+'/runs').add(r);return}catch(e){}}
+  lsSet([r,...lsGet()])}
+const fmtDate=ms=>{const d=new Date(ms);return d.toLocaleDateString('da-DK',{day:'numeric',month:'short'})+' kl. '+d.toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})};
+const gradeChip=g=>`<span class="grade${passed(g)?'':' fail'}">${g}</span>`;
+
+function historyHTML(){const L=Hist.list;
+  if(!L.length)return `<section class="sheet plain hist"><h2>Dine sidste prøver</h2><p class="muted">Når du afleverer en prøve, kommer resultatet her. Siden gemmer dine sidste 10 prøver.</p></section>`;
+  const avg=Math.round(L.reduce((a,r)=>a+r.pct,0)/L.length),best=L.reduce((a,r)=>r.pct>a.pct?r:a,L[0]);
+  return `<section class="sheet plain hist">
+   <div class="hhead"><h2>Dine sidste ${L.length===1?'prøve':L.length+' prøver'}</h2>
+    <div class="hsum"><span>Gennemsnit <b>${avg} %</b> ${gradeChip(grade(avg))}</span><span>Bedste <b>${best.pct} %</b> ${gradeChip(best.grade)}</span></div></div>
+   <div class="tablewrap"><table><thead><tr><th>Dato</th><th class="num">Rigtige</th><th>Procent</th><th class="num">Karakter</th></tr></thead>
+   <tbody>${L.map(r=>`<tr><td>${fmtDate(r.at)}</td><td class="num">${r.ok}/${r.n}</td><td><div class="pbar"><i style="width:${r.pct}%"></i></div><span class="pnum">${r.pct} %</span></td><td class="num">${gradeChip(r.grade)}</td></tr>`).join('')}</tbody></table></div>
+   <p class="hint">Karakteren er et skøn: 12 fra 90 %, 10 fra 78 %, 7 fra 60 %, 4 fra 42 %, 02 fra 25 %, 00 fra 10 %. Ved den rigtige prøve fastsættes grænserne hver gang.</p>
+  </section>`}
+
+// ---------- skærme ----------
+function render(){({start:renderStart,test:renderTest,results:renderResults,train:renderTrain,done:renderDone})[S.screen]();
+  const f=app.querySelector('input:not([disabled])');if(f&&S.screen!=='start')f.focus({preventScroll:true})}
+
+function renderStart(){const groups={};TYPES.forEach(t=>(groups[t.topic]??=[]).push(t.title));
+  app.innerHTML=header('Træn til den skriftlige prøve uden lommeregner')+(Hist.list.length?historyHTML():'')+`
+  <section class="sheet"><div style="display:grid;gap:10px;max-width:62ch">
+   <h2>25 opgaver. Ingen lommeregner. Bagefter træner du dine fejl.</h2>
+   <p>Prøven indeholder én opgave af hver type fra den skriftlige prøve uden hjælpemidler. Du får først svar, når du afleverer. Bagefter kan du træne videre i de opgavetyper, du fik forkert, med nye tal og en trin-for-trin-guide ved siden af.</p></div>
+   <div class="groups">${Object.entries(groups).map(([k,v])=>`<div class="group"><h3>${k}</h3><span class="muted">${v.length} opgaver</span><ul>${v.map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('')}</div>
+   <div style="display:grid;gap:6px"><h3>Sådan skriver du dine svar</h3><ul class="rules">
+    <li>Decimaltal med komma: <code>2,5</code></li><li>Brøker med skråstreg: <code>3/4</code> (blandede tal som <code>1 1/2</code>)</li>
+    <li>Negative tal med minus: <code>-6</code></li><li>Enheden behøver du ikke skrive. Den står allerede ved feltet.</li></ul></div>
+   <div class="row"><button class="btn" id="primary" onclick="startTest()">Start prøven</button><button class="btn ghost" onclick="startTraining(true)">Træn alle 25 typer direkte</button></div>
+  </section>`+(Hist.list.length?'':historyHTML())}
+
+function startTest(){S.test=TYPES.map(t=>({t,inst:t.gen(),inputs:[],ok:null}));S.idx=0;S.confirm=false;S.screen='test';render()}
+function saveCur(){const it=S.test[S.idx];if(it)it.inputs=readInputs(it.inst)}
+function go(i){saveCur();S.idx=Math.max(0,Math.min(S.test.length-1,i));S.confirm=false;render()}
+const answered=it=>it.inputs.some(v=>v&&v.trim());
+
+function renderTest(){const it=S.test[S.idx],n=S.test.length,last=S.idx===n-1;const done=S.test.filter(answered).length;
+  app.innerHTML=header(`${done} af ${n} besvaret`)+`
+  <section class="sheet">
+   <div class="bar" aria-hidden="true"><i style="width:${(S.idx+1)/n*100}%"></i></div>
+   <div class="dots" aria-label="Spring til opgave">${S.test.map((x,i)=>`<button class="dot${answered(x)?' filled':''}${i===S.idx?' now':''}" onclick="go(${i})" aria-label="Opgave ${i+1}">${i+1}</button>`).join('')}</div>
+   <div class="qhead"><span class="qnum">Opgave ${S.idx+1}</span><span class="topic">${it.t.topic.toUpperCase()} · ${it.t.title}</span></div>
+   <div class="qtext">${it.inst.q}</div>${it.inst.fig||''}
+   ${it.inst.hint?`<p class="hint">${it.inst.hint}</p>`:''}
+   ${inputsHTML(it.inst,it.inputs)}
+   ${S.confirm?`<div class="notice warn"><b>Du mangler at svare på ${n-done} opgave${n-done===1?'':'r'}.</b><span>Ubesvarede opgaver tæller som forkerte. Vil du aflevere alligevel?</span><div class="row"><button class="btn" onclick="finish(true)">Aflever alligevel</button><button class="btn ghost" onclick="S.confirm=false;render()">Tilbage til opgaverne</button></div></div>`:''}
+   <div class="row"><button class="btn quiet" onclick="go(${S.idx-1})"${S.idx===0?' disabled':''}>Forrige</button><span class="spacer"></span>
+    ${last?`<button class="btn" id="primary" onclick="finish(false)">Aflever</button>`:`<button class="btn" id="primary" onclick="go(${S.idx+1})">Næste</button>`}</div>
+   ${!last?`<div class="row end"><button class="btn ghost" onclick="finish(false)">Aflever nu</button></div>`:''}
+  </section>`}
+
+function finish(force){saveCur();const missing=S.test.filter(x=>!answered(x)).length;if(missing&&!force){S.confirm=true;render();return}
+  S.test.forEach(x=>{x.marks=checkOne(x.inst,x.inputs);x.ok=x.marks.every(Boolean)});recordRun(S.test.filter(x=>x.ok).length,S.test.length);S.screen='results';render();window.scrollTo(0,0)}
+
+function renderResults(){const n=S.test.length,ok=S.test.filter(x=>x.ok).length,wrong=n-ok;const by={};
+  S.test.forEach(x=>{const b=(by[x.t.topic]??={ok:0,n:0});b.n++;if(x.ok)b.ok++});
+  const msg=ok===n?'Alle rigtige. Flot!':ok>=20?'Rigtig godt. Træn de sidste fejl væk.':ok>=13?'Godt på vej. Træningen tager dig videre.':'Der er noget at arbejde med. Træn én type ad gangen.';
+  app.innerHTML=header('Prøven er rettet')+`
+  <section class="sheet">
+   <div class="score"><div class="big" aria-label="${ok} ud af ${n} rigtige">${ok}/${n}</div><div style="display:grid;gap:4px"><h2>${msg}</h2><p>${Math.round(ok/n*100)} % rigtige svarer til ca. karakteren ${gradeChip(grade(Math.round(ok/n*100)))}</p><p class="muted">${wrong?`Du fik ${wrong} forkert${wrong===1?'':'e'}. Klik på en opgave for at se løsningen.`:'Du kan tage en ny prøve med nye tal.'}</p></div></div>
+   <div class="topics">${Object.entries(by).map(([k,b])=>`<div class="tstat"><span class="muted" style="font-size:.85rem">${k}</span><b>${b.ok} af ${b.n} rigtige</b><div class="bar"><i style="width:${b.ok/b.n*100}%;background:${b.ok===b.n?'var(--green)':'var(--accent)'}"></i></div></div>`).join('')}</div>
+   <div class="row">${wrong?`<button class="btn" id="primary" onclick="startTraining(false)">Træn mine ${wrong} fejl</button>`:''}<button class="btn ${wrong?'ghost':''}" onclick="startTest()">Ny prøve med nye tal</button></div>
+   <div class="list">${S.test.map((x,i)=>`<details${!x.ok&&false?' open':''}><summary><span class="n">${i+1}</span><span class="t">${x.t.title}<small>${x.t.topic}</small></span><span class="m ${x.ok?'ok':'bad'}" aria-label="${x.ok?'Rigtigt':'Forkert'}">${x.ok?'✓':'✗'}</span></summary>
+     <div class="body"><div class="qtext" style="font-size:1.05rem">${x.inst.q}</div>${x.inst.fig||''}
+      <div class="cmp"><span>Dit svar: <b>${x.inputs.some(v=>v&&v.trim())?x.inputs.map(esc).join(' og '):'ikke besvaret'}</b></span><span>Rigtigt svar: <b>${showAns(x.inst)}</b></span></div>
+      <ol class="steps">${x.inst.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></details>`).join('')}</div>
+  </section>`}
+
+// ---------- træning ----------
+const NEED=2;
+function startTraining(all){const src=all?TYPES.map(t=>({t,inst:t.gen()})):S.test.filter(x=>!x.ok);
+  S.train={all,items:src.map(x=>({t:x.t,orig:x.inst,used:false,streak:0,tries:0,right:0,done:false})),cur:0,inst:null,state:'ask',vals:[],marks:null};loadItem(0)}
+function loadItem(i){const T=S.train,it=T.items[i];T.cur=i;T.inst=it.used?it.t.gen():it.orig;it.used=true;T.state='ask';T.vals=[];T.marks=null;S.screen='train';render()}
+function nextItem(){const T=S.train,n=T.items.length;for(let k=1;k<=n;k++){const j=(T.cur+k)%n;if(!T.items[j].done)return loadItem(j)}S.screen='done';render()}
+function checkTrain(){const T=S.train,it=T.items[T.cur];T.vals=readInputs(T.inst);if(!T.vals.some(v=>v.trim()))return;
+  T.marks=checkOne(T.inst,T.vals);const ok=T.marks.every(Boolean);it.tries++;if(ok){it.right++;it.streak++;if(it.streak>=NEED)it.done=true}else it.streak=0;T.state=ok?'ok':'bad';render()}
+const pips=it=>'●'.repeat(Math.min(it.streak,NEED))+'○'.repeat(NEED-Math.min(it.streak,NEED));
+
+function renderTrain(){const T=S.train,it=T.items[T.cur],inst=T.inst,doneN=T.items.filter(x=>x.done).length,n=T.items.length,answeredNow=T.state!=='ask';
+  const fb=T.state==='ok'?`<div class="feedback"><span class="mark ok">Rigtigt!</span><span>${it.done?'Typen er på plads. Den er fjernet fra træningen.':`${it.streak} af ${NEED} rigtige i træk. Én mere, så er den på plads.`}</span></div>`
+   :T.state==='bad'?`<div class="feedback"><span class="mark bad">Ikke helt</span><span>Det rigtige svar er <b>${showAns(inst)}</b>. Se løsningen og prøv en ny med andre tal.</span></div>`:'';
+  app.innerHTML=header(`${doneN} af ${n} typer på plads`)+`
+  <div class="chips" aria-label="Opgavetyper i træningen">${T.items.map((x,i)=>`<button class="chip${x.done?' done':''}${i===T.cur?' now':''}" onclick="loadItem(${i})">${x.t.title}<span class="pips" aria-label="${x.streak} rigtige i træk">${x.done?'✓':pips(x)}</span></button>`).join('')}</div>
+  <div class="train">
+   <section class="sheet">
+    <div class="bar" aria-hidden="true"><i style="width:${doneN/n*100}%;background:var(--green)"></i></div>
+    <div class="qhead"><span class="qnum">${it.t.title}</span><span class="topic">${it.t.topic.toUpperCase()} · ${it.tries===0&&!T.all&&!answeredNow?'din opgave fra prøven':'ny variant'}</span></div>
+    <div class="qtext">${inst.q}</div>${inst.fig||''}
+    ${inst.hint?`<p class="hint">${inst.hint}</p>`:''}
+    ${inputsHTML(inst,T.vals,T.marks,answeredNow)}
+    ${fb}
+    ${answeredNow?`<div class="solution"><h3>Løsning trin for trin</h3><ol class="steps">${inst.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div>`:''}
+    <div class="row">${answeredNow?`<button class="btn" id="primary" onclick="nextItem()">${doneN===n?'Afslut træningen':'Næste opgave'}</button>`:`<button class="btn" id="primary" onclick="checkTrain()">Tjek svar</button><button class="btn quiet" onclick="S.train.vals=[];S.train.marks=checkOne(S.train.inst,[]);S.train.items[S.train.cur].streak=0;S.train.items[S.train.cur].tries++;S.train.state='bad';render()">Vis løsningen</button>`}
+     <span class="spacer"></span><button class="btn quiet" onclick="S.screen=S.test.length?'results':'start';render()">${S.test.length?'Til resultatet':'Til forsiden'}</button></div>
+   </section>
+   <aside class="info" aria-label="Sådan løser du opgaven">
+    <div class="eyebrow">Sådan løser du den</div><h2>${it.t.title}</h2>
+    ${ILL[it.t.id]?.()||''}
+    <ol>${it.t.method.map(s=>`<li>${s}</li>`).join('')}</ol>
+    <p class="tip"><b>Husk:</b> ${it.t.tip}</p>
+   </aside>
+  </div>`}
+
+function renderDone(){const T=S.train;const tries=T.items.reduce((a,x)=>a+x.tries,0);
+  app.innerHTML=header('Træningen er færdig')+`
+  <section class="sheet"><div class="score"><div class="big">✓</div><div style="display:grid;gap:4px"><h2>Alle ${T.items.length} typer er på plads</h2><p class="muted">Du løste ${tries} opgaver undervejs og fik hver type rigtig ${NEED} gange i træk.</p></div></div>
+   <div class="row"><button class="btn" id="primary" onclick="startTest()">Tag en ny prøve</button>${S.test.length?`<button class="btn ghost" onclick="S.screen='results';render()">Se resultatet igen</button>`:''}</div></section>`}
+
+app.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();document.getElementById('primary')?.click()}});
+render();initHist();
+</script>
